@@ -1,5 +1,5 @@
 
--- TOWER DEFENSE: UPGRADE SYSTEM
+-- TOWER DEFENSE: TOWER UPGRADE SYSTEM
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -9,14 +9,18 @@ upgradeEvent.Parent = ReplicatedStorage
 
 local COSTS = {
     [1] = 200,
-    [2] = 400,
-    [3] = 800
+    [2] = 400
 }
 
 upgradeEvent.OnServerEvent:Connect(function(player, tower)
-    if typeof(tower) ~= "Instance" then return end
+    local towers = workspace:FindFirstChild("Towers")
+
+    if not towers or typeof(tower) ~= "Instance" then
+        return
+    end
+
     if not tower:IsA("BasePart") then return end
-    if not tower:IsDescendantOf(workspace.Towers) then return end
+    if not tower:IsDescendantOf(towers) then return end
 
     local cash = player:FindFirstChild("leaderstats")
         and player.leaderstats:FindFirstChild("Cash")
@@ -41,11 +45,10 @@ upgradeEvent.OnServerEvent:Connect(function(player, tower)
     cash.Value -= price
     level.Value += 1
 
-    tower.Color = Color3.fromRGB(
-        0,
-        150 + level.Value * 30,
-        255
-    )
+    tower.Color = Color3.fromRGB(0, 150, 255)
+    tower.Size += Vector3.new(1, 1, 1)
 
-    print("Tower upgraded to level " .. level.Value)
+    print("Tower upgraded! Level:", level.Value)
 end)
+
+print("Tower Upgrade System Loaded!")
