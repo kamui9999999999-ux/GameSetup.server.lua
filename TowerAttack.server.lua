@@ -1,12 +1,11 @@
 
--- TOWER DEFENSE: TOWER ATTACK SYSTEM
--- Place inside ServerScriptService
+-- TOWER ATTACK + CASH REWARD
 
+local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 
 local enemies = Workspace:WaitForChild("Enemies")
 
--- Create a sci-fi tower
 local tower = Instance.new("Part")
 tower.Name = "SciFiTower"
 tower.Size = Vector3.new(5, 8, 5)
@@ -18,6 +17,7 @@ tower.Parent = Workspace
 
 local RANGE = 35
 local DAMAGE = 25
+local REWARD = 50
 local ATTACK_DELAY = 1
 
 while true do
@@ -38,10 +38,19 @@ while true do
     if target then
         local health = target:FindFirstChild("Health")
 
-        if health then
-            health.Value = health.Value - DAMAGE
+        if health and health.Value > 0 then
+            health.Value = math.max(0, health.Value - DAMAGE)
 
             if health.Value <= 0 then
+                for _, player in ipairs(Players:GetPlayers()) do
+                    local cash = player:FindFirstChild("leaderstats")
+                        and player.leaderstats:FindFirstChild("Cash")
+
+                    if cash then
+                        cash.Value += REWARD
+                    end
+                end
+
                 target:Destroy()
             end
         end
