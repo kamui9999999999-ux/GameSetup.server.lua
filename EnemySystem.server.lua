@@ -1,22 +1,19 @@
 
--- TOWER DEFENSE: ENEMY SYSTEM
--- Place inside ServerScriptService
+-- TOWER DEFENSE: WAVE SYSTEM
 
 local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local gameState = ReplicatedStorage:WaitForChild("GameState")
 
-local ENEMY_HEALTH = 100
-local ENEMY_SPEED = 8
-local DAMAGE_TO_BASE = 50
+local enemies = Workspace:FindFirstChild("Enemies")
 
--- Create enemy folder
-local enemies = Instance.new("Folder")
-enemies.Name = "Enemies"
-enemies.Parent = Workspace
+if not enemies then
+    enemies = Instance.new("Folder")
+    enemies.Name = "Enemies"
+    enemies.Parent = Workspace
+end
 
--- Create enemy
 local function spawnEnemy()
     local enemy = Instance.new("Part")
     enemy.Name = "SciFiRobot"
@@ -29,34 +26,44 @@ local function spawnEnemy()
 
     local health = Instance.new("IntValue")
     health.Name = "Health"
-    health.Value = ENEMY_HEALTH
+    health.Value = 100 + (gameState.Wave.Value * 10)
     health.Parent = enemy
 
-    -- Walk toward the base
     task.spawn(function()
         while enemy.Parent and enemy.Position.Z < 40 do
-            local nextPosition = enemy.Position + Vector3.new(
-                0, 0, ENEMY_SPEED * 0.1
-            )
-
-            enemy.Position = nextPosition
+            enemy.Position += Vector3.new(0, 0, 0.8)
             task.wait(0.1)
         end
 
         if enemy.Parent then
             gameState.BaseHP.Value = math.max(
                 0,
-                gameState.BaseHP.Value - DAMAGE_TO_BASE
+                gameState.BaseHP.Value - 50
             )
             enemy:Destroy()
         end
     end)
 end
 
--- Spawn one enemy every 3 seconds
 while gameState.BaseHP.Value > 0 do
-    spawnEnemy()
-    task.wait(3)
+    local currentWave = gameState.Wave.Value
+
+    print("Starting Wave " .. currentWave)
+
+    for i = 1, currentWave * 5 do
+        if gameState.BaseHP.Value <= 0 then
+            break
+        end
+
+        spawnEnemy()
+        task.wait(1)
+    end
+
+    task.wait(10)
+
+    if gameState.BaseHP.Value > 0 then
+        gameState.Wave.Value += 1
+    end
 end
 
-print("Sci-Fi Enemy System Started!")
+print("GAME OVER!")
